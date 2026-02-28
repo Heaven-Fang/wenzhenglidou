@@ -1,0 +1,637 @@
+================================================================================
+                        《文争理斗》项目全面总结文档
+================================================================================
+
+一、项目概述
+================================================================================
+
+【项目名称】文争理斗 (Wen Zheng Li Dou)
+
+【项目类型】纯文字回合制网络对战卡牌游戏
+
+【核心目标】
+实现一款基于WebSocket实时通信的双人对战卡牌游戏，玩家通过选择不同角色，
+利用角色独特的天赋和技能进行策略对战。
+
+【游戏模式】
+- 当前支持：1v1对战模式
+- 预留支持：3v3对战模式（架构已预留扩展空间）
+
+【技术栈】
+- 后端：Node.js + Express + WebSocket (ws库)
+- 前端：原生HTML + CSS + JavaScript（无框架依赖）
+- 通信：WebSocket双向实时通信
+- 部署：支持Railway、传统服务器等多种部署方式
+
+
+二、项目目录结构
+================================================================================
+
+test3/
+├── server/                          # 服务端代码目录
+│   ├── index.js                     # 服务器入口文件
+│   ├── config/                      # 配置文件目录
+│   │   └── constants.js             # 游戏常量配置
+│   ├── data/                        # 数据文件目录
+│   │   ├── characters/              # 角色数据模块
+│   │   │   ├── index.js             # 角色导出汇总
+│   │   │   ├── alice.js             # 爱丽丝角色数据
+│   │   │   ├── siyue.js             # 四月角色数据
+│   │   │   ├── wugeng.js            # 五更角色数据
+│   │   │   └── xingzi.js            # 杏子角色数据
+│   │   └── buffs/                   # Buff系统数据
+│   │       └── index.js             # Buff定义库
+│   ├── game/                        # 游戏核心逻辑
+│   │   ├── BattleManager.js         # 战斗流程管理
+│   │   ├── BuffManager.js           # Buff系统管理
+│   │   ├── DamageCalculator.js      # 伤害计算器
+│   │   ├── PhaseManager.js          # 阶段管理器
+│   │   └── SkillExecutor.js         # 技能执行器
+│   ├── handlers/                    # 消息处理器
+│   │   └── MessageHandler.js        # WebSocket消息处理
+│   ├── models/                      # 数据模型
+│   │   ├── GameState.js             # 游戏状态模型
+│   │   └── PlayerState.js           # 玩家状态模型
+│   └── utils/                       # 工具函数
+│       └── helpers.js               # 通用辅助函数
+│
+├── public/                          # 前端静态文件
+│   ├── index.html                   # 主页面
+│   ├── css/                         # 样式文件
+│   │   └── main.css                 # 主样式文件
+│   └── js/                          # JavaScript模块
+│       ├── data/
+│       │   └── characters.js        # 前端角色数据
+│       ├── ui/
+│       │   └── UI.js                # UI渲染模块
+│       └── game/
+│           └── Game.js              # 游戏主逻辑模块
+│
+└── package.json                     # 项目配置文件
+
+
+三、核心文件功能详解
+================================================================================
+
+【服务端文件】
+
+--------------------------------------------------------------------------------
+1. server/index.js - 服务器入口
+--------------------------------------------------------------------------------
+功能：
+- 创建Express应用和HTTP服务器
+- 初始化WebSocket服务器
+- 配置静态文件服务
+- 处理客户端连接/断开事件
+- 为每个连接生成唯一用户ID
+
+关键代码：
+- wss.on('connection')：监听WebSocket连接
+- ws.send()：发送初始连接消息
+- handleMessage()：委托消息处理
+
+--------------------------------------------------------------------------------
+2. server/config/constants.js - 游戏常量配置
+--------------------------------------------------------------------------------
+内容：
+- PORT：服务器端口（支持环境变量）
+- HOST：服务器地址（0.0.0.0）
+- PHASE_DELAY：阶段间延迟（2000ms）
+- COUNTDOWN_DELAY：倒计时延迟（5000ms）
+- MAX_ROUNDS：最大回合数（11回合）
+- DAMAGE_TABLE：伤害对照表（随机数1-9对应伤害值）
+- DODGE_REDUCTION_TABLE：闪避减免表
+- PHASES：游戏阶段数组（9个阶段）
+
+--------------------------------------------------------------------------------
+3. server/handlers/MessageHandler.js - 消息处理器
+--------------------------------------------------------------------------------
+处理的消息类型：
+- updateUserInfo：更新用户信息
+- createRoom：创建房间
+- joinRoom：加入房间
+- getRoomInfo：获取房间信息
+- challenge：发起挑战
+- acceptChallenge：接受挑战
+- selectCharacter：选择角色
+- useSkill：使用技能
+- confirmAction：确认行动
+- leaveRoom：离开房间
+
+核心功能：
+- 管理房间状态（rooms Map）
+- 管理游戏状态（games Map）
+- 广播消息给房间内玩家
+
+--------------------------------------------------------------------------------
+4. server/game/PhaseManager.js - 阶段管理器
+--------------------------------------------------------------------------------
+游戏9个阶段：
+1. roundStart    - 宣告本轮次开始
+2. summonAction  - 召唤物行动
+3. beforeSkill   - 【前】技能释放阶段
+4. actionCompare - 双方行动值比拼
+5. attackerAction- 攻击方行动
+6. defenderAction- 防守方行动
+7. settlement    - 攻防行动结算
+8. afterSkill    - 【后】技能释放阶段
+9. roundEnd      - 宣告本轮次结束
+
+核心函数：
+- advancePhase()：推进到下一阶段
+- handleSummonAction()：处理召唤物行动
+- handleBeforeSkill()：处理回合开始技能
+- handleActionCompare()：处理行动值比拼
+- handleSettlement()：处理伤害结算
+- handleRoundEnd()：处理回合结束
+
+--------------------------------------------------------------------------------
+5. server/game/BattleManager.js - 战斗管理器
+--------------------------------------------------------------------------------
+核心函数：
+- processPassiveSkills()：处理被动技能
+- processTalent()：处理天赋效果
+- processShanghaiDolls()：处理上海人偶
+- processPenglaiDolls()：处理蓬莱人偶自爆
+- processRevealDamage()：处理揭示伤害
+- processActionValueComparison()：行动值比拼核心逻辑
+- processAttack()：处理攻击
+- processDefense()：处理防御
+- applyDamage()：应用伤害
+
+行动值计算公式：
+行动值 = 随机数(1-100) + ATK + 随机数加成/减益
+
+--------------------------------------------------------------------------------
+6. server/game/DamageCalculator.js - 伤害计算器
+--------------------------------------------------------------------------------
+伤害对照表：
+随机数 1-2 → 伤害 0
+随机数 3-4 → 伤害 2
+随机数 5-6 → 伤害 3
+随机数 7-8 → 伤害 4
+随机数 9   → 伤害 6
+
+闪避减免表：
+随机数 1-4 → 减免 0
+随机数 5-6 → 减免 2
+随机数 7-8 → 减免 3
+随机数 9   → 减免 4
+
+核心函数：
+- calculateDamage()：计算基础伤害
+- calculateDodgeReduction()：计算闪避减免
+- dealNormalDamage()：处理普通伤害（可被闪避/防御）
+- dealTrueDamage()：处理真实伤害（无视防御）
+- processDollDamage()：处理人偶分摊伤害
+
+--------------------------------------------------------------------------------
+7. server/game/SkillExecutor.js - 技能执行器
+--------------------------------------------------------------------------------
+按角色分发技能执行：
+- executeAliceSkills()：爱丽丝技能（召唤人偶）
+- executeSiyueSkills()：四月技能（先手/削弱）
+- executeWugengSkills()：五更技能（生存/回转）
+- executeXingziSkills()：杏子技能（爆发）
+
+技能冷却检查：
+- 检查SP是否足够
+- 检查本回合是否已使用
+- 检查技能冷却状态
+
+--------------------------------------------------------------------------------
+8. server/game/BuffManager.js - Buff系统管理器
+--------------------------------------------------------------------------------
+核心函数：
+- addBuff()：添加Buff
+- removeBuff()：移除Buff
+- tickBuffDurations()：减少Buff持续时间
+- processRoundEndBuffs()：处理回合结束Buff效果
+- triggerBuff()：触发条件型Buff
+- hasBuff()：检查是否有指定Buff
+- getBuffValue()：获取Buff数值
+- getBuffStacks()：获取Buff层数
+
+--------------------------------------------------------------------------------
+9. server/data/buffs/index.js - Buff定义库
+--------------------------------------------------------------------------------
+已实现的Buff类型：
+
+| Buff ID            | 名称           | 效果                     |
+|--------------------|----------------|--------------------------|
+| atkBoost           | 攻击强化       | 永久ATK提升              |
+| atkBoostTemp       | 临时攻击强化   | 本回合ATK提升            |
+| defBoost           | 防御强化       | 永久DEF提升              |
+| defBoostTemp       | 临时防御强化   | 本回合DEF提升            |
+| defReduction       | 防御削弱       | 永久DEF降低              |
+| damageBoost        | 伤害强化       | 本回合普通伤害提升       |
+| damageReduction    | 伤害减免       | 本回合受到普通伤害减少   |
+| randomBoost        | 行动值加成     | 本回合随机数增加         |
+| randomReduction    | 行动值削弱     | 永久随机数减少           |
+| randomReductionTemp| 临时行动值削弱 | 本回合随机数减少         |
+| revealDamage       | 揭示           | 回合结束真实伤害         |
+| skipAction         | 跳过行动       | 跳过行动值比拼           |
+| extraAttack        | 额外攻击       | 进行额外一次攻击         |
+| spBoost            | SP上限提升     | SP上限增加               |
+| spGain             | SP获取         | 立即获得SP               |
+| dodgeSpGain        | 闪避SP获取     | 闪避成功时获得SP         |
+
+--------------------------------------------------------------------------------
+10. server/models/GameState.js - 游戏状态模型
+--------------------------------------------------------------------------------
+游戏状态结构：
+{
+    round: 1,                    // 当前回合
+    phase: 'roundStart',         // 当前阶段
+    attacker: null,              // 进攻方（1或2）
+    defender: null,              // 防守方（1或2）
+    actionValue1: 0,             // 玩家1行动值
+    actionValue2: 0,             // 玩家2行动值
+    randomNum1: 0,               // 玩家1随机数
+    randomNum2: 0,               // 玩家2随机数
+    baseDamage: 0,               // 基础伤害
+    finalDamage: 0,              // 最终伤害
+    dodgeReduction: 0,           // 闪避减免
+    pendingDamage: 0,            // 待结算伤害
+    pendingDodgeReduction: 0,    // 待结算闪避减免
+    player1: PlayerState,        // 玩家1状态
+    player2: PlayerState,        // 玩家2状态
+    logs: [],                    // 战斗日志
+    usedSkills: [],              // 已使用技能记录
+    turnUsedSkills: [],          // 本回合已使用技能
+    gameEnded: false,            // 游戏是否结束
+    winner: null                 // 胜利者
+}
+
+checkGameEnd()：检查游戏结束条件
+- 任一玩家HP <= 0
+- 回合数 > 11（比较HP判定胜负）
+
+--------------------------------------------------------------------------------
+11. server/models/PlayerState.js - 玩家状态模型
+--------------------------------------------------------------------------------
+玩家状态结构：
+{
+    characterId: 1,              // 角色ID
+    hp: 7,                       // 当前HP
+    maxHP: 7,                    // 最大HP
+    atk: 20,                     // 当前ATK
+    baseAtk: 20,                 // 基础ATK
+    def: 3,                      // 当前DEF
+    baseDef: 3,                  // 基础DEF
+    sp: 1,                       // 当前SP
+    maxSP: 6,                    // 最大SP
+    atkBonus: 0,                 // ATK加成
+    defBonus: 0,                 // DEF加成
+    turnDamageBonus: 0,          // 本回合伤害加成
+    permanentDamageBonus: 0,     // 永久伤害加成
+    addDamage: 0,                // 增伤值
+    randomBonus: 0,              // 随机数加成
+    randomReduction: 0,          // 随机数减益
+    nextRandomBonus: 0,          // 下回合随机数加成
+    extraAttack: false,          // 是否有额外攻击
+    skipAction: false,           // 是否跳过行动
+    damageReduction: 0,          // 伤害减免
+    doubleRandom: false,         // 是否双随机数
+    thickAccumulationCooldown: 0,// 厚积冷却
+    thickAccumulationUsedThisRound: false,
+    talentAtkBonus: 0,           // 天赋ATK加成
+    revealed: false,             // 是否被揭示
+    revealDuration: 0,           // 揭示持续时间
+    premonitionTarget: null,     // 预兆目标
+    premonitionDuration: 0,      // 预兆持续时间
+    premonitionValues: [],       // 预兆数值
+    premonitionTriggered: false, // 预兆是否触发
+    buYuActive: false,           // 不语是否激活
+    buYuDefBonus: 0,             // 不语DEF加成
+    summonedDolls: [],           // 召唤的人偶
+    summons: [],                 // 召唤物
+    confirmed: false,            // 是否已确认
+    preciseAimActive: false,     // 精准瞄准是否激活
+    premonitionDisabled: false,  // 预兆是否禁用
+    buffs: []                    // Buff列表
+}
+
+--------------------------------------------------------------------------------
+12. server/data/characters/ - 角色数据
+--------------------------------------------------------------------------------
+每个角色文件导出角色对象，包含：
+- id：角色ID
+- name：角色名称
+- title：角色称号
+- tag：角色标签
+- description：角色描述
+- maxHP：最大HP
+- atk：基础ATK
+- def：基础DEF
+- maxSP：最大SP
+- initSP：初始SP
+- talent：天赋（name + description）
+- skills：技能数组（id, name, type, timing, spCost, description）
+
+
+【前端文件】
+
+--------------------------------------------------------------------------------
+1. public/index.html - 主页面
+--------------------------------------------------------------------------------
+结构：
+- 6个屏幕（screen）：开始、用户信息、创建房间、加入房间、房间、选择角色、战斗
+- 3个弹窗：倒计时、结果、技能确认
+- 引入3个JS模块：characters.js, UI.js, Game.js
+- 引入CSS：main.css
+
+--------------------------------------------------------------------------------
+2. public/css/main.css - 主样式文件
+--------------------------------------------------------------------------------
+样式分类：
+- 基础样式：*、body、container、screen
+- 按钮样式：btn、btn-primary、btn-secondary、btn-danger、btn-success
+- 表单样式：form-group、input
+- 房间样式：room-header、player-list、player-item
+- 选择样式：character-list、character-detail、stat-grid
+- 战斗样式：battle-area、player-panel、hp-bar、skill-btn
+- Buff样式：buff-area、buff-item（positive/negative）
+- 弹窗样式：countdown-overlay、result-overlay、skill-modal
+- 动画：highlight、panelHighlight、slideIn
+
+--------------------------------------------------------------------------------
+3. public/js/data/characters.js - 前端角色数据
+--------------------------------------------------------------------------------
+与后端角色数据同步，用于：
+- 角色选择界面显示
+- 角色详情展示
+- 战斗面板渲染
+
+--------------------------------------------------------------------------------
+4. public/js/ui/UI.js - UI渲染模块
+--------------------------------------------------------------------------------
+核心函数：
+- showScreen(screenId)：切换屏幕
+- showToast(message)：显示提示消息
+- updateUserInfo()：更新用户信息显示
+- updateRoomInfo()：更新房间信息
+- initCharacterSelect()：初始化角色选择
+- showCharacterDetail()：显示角色详情
+- updateBattleUI()：更新战斗界面
+- updatePlayerPanel()：更新玩家面板
+- showSkillModal()：显示技能弹窗
+- showGameResult()：显示游戏结果
+- highlightPhase()：高亮当前阶段
+
+--------------------------------------------------------------------------------
+5. public/js/game/Game.js - 游戏主逻辑模块
+--------------------------------------------------------------------------------
+游戏状态变量：
+- ws：WebSocket连接
+- userId/username：用户信息
+- currentRoom：当前房间
+- isHost：是否房主
+- playerNumber：玩家编号
+- selectedCharacter：已选角色
+- isReady：是否准备
+- gameState：游戏状态
+
+核心函数：
+- init()：初始化游戏
+- connect()：建立WebSocket连接
+- handleMessage()：处理服务器消息
+- send()：发送消息给服务器
+- createRoom()：创建房间
+- joinRoom()：加入房间
+- selectCharacter()：选择角色
+- toggleReady()：切换准备状态
+- useSkill()：使用技能
+- confirmAction()：确认行动
+
+
+四、角色系统详解
+================================================================================
+
+【角色1：爱丽丝】
+称号：七色人偶使
+标签：召唤，消耗
+属性：HP 7, ATK 20, DEF 3, SP 1/6
+
+天赋【人偶师】：
+爱丽丝召唤的所有人偶(HP:4，DEF:0)为爱丽丝分摊50%的伤害
+(包含普通伤害与真实伤害)(若普通伤害为奇数，则人偶分摊较大部分的伤害)
+
+技能：
+1. 【开幕】(被动)：第一回合开始时召唤一个人偶。回合开始时，场上每存在一个人偶，爱丽丝ATK+8
+2. 【蓬莱人偶】(SP:1)：立即召唤1个蓬莱人偶(存在2回合后在第三个回合开始时自爆并消失，造成1*当前人偶数+2的普通伤害)
+3. 【上海人偶】(SP:2)：立即召唤1个上海人偶(若HP未归零则永久存在，每回合开始时对对方造成1*人偶数+1的普通伤害)
+
+【角色2：四月】
+称号：灵巧的猎手
+标签：先手，削弱
+属性：HP 11, ATK 30, DEF 4, SP 3/6
+
+天赋【本能】：
+每次成为进攻方时，立即使自身ATK+2(最多+10)，同时使对方下一回合行动判定随机数-10
+
+技能：
+1. 【速射装填】(SP:2)：本回合行动判定随机数+20。若本回合成为进攻方，额外进行一次独立攻击
+2. 【精准瞄准】(SP:3)：本回合造成伤害+2，本回合内若攻击命中，永久使敌方DEF-1
+3. 【连携突袭】(SP:5)：立即获得1次行动权。行动时ATK+5，且使对方下回合行动判定随机数-30
+
+【角色3：五更】
+称号：厄运黑猫
+标签：生存，回转
+属性：HP 10, ATK 30, DEF 3, SP 2/8
+
+天赋【夜行】：
+奇数回合自身ATK+5，偶数回合自身造成的普通伤害+1
+
+技能：
+1. 【预兆】(SP:2)：指定1名角色，使其本回合随机数-15，下回合随机数-5。若本回合或下回合对方成为防守方，立即使自身SP+1
+2. 【不语】(SP:3)：本回合行动判定随机数+15，若本回合我方成为进攻方，立刻获得4SP；若本回合我方成为防守方，自身DEF+1
+3. 【揭示】(SP:7)：指定一名角色，自本回合开始，每回合结束时受到1真实伤害，持续4回合
+
+【角色4：杏子】
+称号：无拘算命师
+标签：爆发
+属性：HP 6, ATK 15, DEF 5, SP 0/6
+
+天赋【走险】：
+若闪避判定成功，自身SP+1
+
+技能：
+1. 【度算】(被动)：自身按不同的行动值大小获得不同增益：
+   - 行动判定点数1-70：ATK永久+3（最多+15）
+   - 行动判定点数71-150：立即使自身SP+1,SP上限+1（最多+5）
+   - 行动判定点数151以上：对人造成的普通伤害+1（无上限）
+2. 【厚积】(SP:1)：跳过行动值比拼，对方成为进攻方。本回合受到的普通伤害-1。下回合随机数取2次取大值
+3. 【定命】(SP:7)：指定一名角色，立刻造成大量伤害：2+增伤+(自身SP上限-4)
+
+
+五、战斗系统详解
+================================================================================
+
+【伤害类型】
+1. 普通伤害：
+   - 可被DEF减免
+   - 可被闪避判定减免
+   - 公式：最终伤害 = max(0, 伤害 - DEF - 闪避减免)
+
+2. 真实伤害：
+   - 无视DEF
+   - 无视闪避
+   - 直接扣除HP
+
+【闪避判定】
+触发条件：伤害 <= DEF
+判定方式：随机数1-9，根据表计算减免值
+
+【人偶分摊】（爱丽丝专属）
+- 人偶分摊50%伤害
+- 若伤害为奇数，人偶分摊较大部分
+
+
+六、WebSocket通信协议
+================================================================================
+
+【客户端→服务器消息】
+
+| 类型              | 参数                              | 说明           |
+|-------------------|-----------------------------------|----------------|
+| updateUserInfo    | username, userId                  | 更新用户信息   |
+| createRoom        | roomCode, mode                    | 创建房间       |
+| joinRoom          | roomCode                          | 加入房间       |
+| getRoomInfo       | 无                                | 获取房间信息   |
+| challenge         | 无                                | 发起挑战       |
+| acceptChallenge   | 无                                | 接受挑战       |
+| selectCharacter   | characterId, ready                | 选择角色       |
+| useSkill          | skillId, targetPlayer             | 使用技能       |
+| confirmAction     | 无                                | 确认行动       |
+| leaveRoom         | 无                                | 离开房间       |
+
+【服务器→客户端消息】
+
+| 类型              | 参数                              | 说明           |
+|-------------------|-----------------------------------|----------------|
+| connected         | userId, username                  | 连接成功       |
+| userInfoUpdated   | userId, username                  | 用户信息更新   |
+| roomCreated       | roomCode                          | 房间创建成功   |
+| roomJoined        | roomCode                          | 加入房间成功   |
+| roomInfo          | roomCode, mode, players, gameLog  | 房间信息       |
+| playerJoined      | username, userId                  | 玩家加入       |
+| playerLeft        | username                          | 玩家离开       |
+| challengeRequest  | from                              | 挑战请求       |
+| gameStart         | playerNumber                      | 游戏开始       |
+| opponentSelected  | characterId, ready                | 对手选择角色   |
+| bothReady         | player1Name, player2Name, ...     | 双方准备就绪   |
+| battleStart       | gameState                         | 战斗开始       |
+| gameUpdate        | gameState                         | 游戏状态更新   |
+| phaseChange       | gameState                         | 阶段变化       |
+| gameEnd           | winner, gameState                 | 游戏结束       |
+| roomClosed        | 无                                | 房间关闭       |
+| leftRoom          | 无                                | 离开房间成功   |
+| error             | message                           | 错误消息       |
+
+
+七、项目特点与亮点
+================================================================================
+
+【架构特点】
+1. 模块化设计：
+   - 服务端按功能拆分为game、data、models、handlers等模块
+   - 前端按职责拆分为data、ui、game模块
+   - 便于维护和扩展
+
+2. 数据驱动：
+   - 角色数据独立于逻辑代码
+   - Buff系统可配置化
+   - 易于添加新角色和新Buff
+
+3. 状态机模式：
+   - 游戏阶段采用状态机管理
+   - 清晰的阶段转换逻辑
+   - 支持自动推进和玩家确认
+
+【技术亮点】
+1. WebSocket实时通信：
+   - 双向实时数据传输
+   - 低延迟游戏体验
+   - 支持多人在线对战
+
+2. 服务端权威：
+   - 所有游戏逻辑在服务端执行
+   - 防止作弊
+   - 保证游戏公平性
+
+3. Buff系统：
+   - 可叠加、可计时
+   - 支持触发器机制
+   - 易于扩展新效果
+
+4. 响应式UI：
+   - 纯CSS动画效果
+   - 阶段高亮提示
+   - 实时状态更新
+
+【扩展性】
+1. 预留3v3模式架构
+2. Buff系统支持快速添加新效果
+3. 角色系统支持快速添加新角色
+4. 可接入数据库实现用户数据持久化
+
+
+八、部署说明
+================================================================================
+
+【本地运行】
+npm install
+npm start
+访问 http://localhost:3000
+
+【Railway部署】
+1. 上传代码到GitHub
+2. 在Railway创建项目，选择GitHub仓库
+3. 自动部署，生成公网域名
+
+【环境变量】
+- PORT：服务器端口（默认3000，Railway自动设置）
+
+【注意事项】
+- WebSocket需要服务器支持
+- 静态托管平台（GitHub Pages、Vercel）不适用
+
+
+九、已知问题与改进方向
+================================================================================
+
+【已知问题】
+1. 无数据库：游戏状态存储在内存，服务器重启后丢失
+2. 无用户系统：用户ID随机生成，无法保存进度
+3. 无匹配系统：需要手动创建/加入房间
+
+【改进方向】
+1. 添加数据库（MongoDB/MySQL）存储用户数据
+2. 实现用户注册/登录系统
+3. 添加天梯排名系统
+4. 实现自动匹配功能
+5. 添加更多角色和技能
+6. 实现回放系统
+7. 添加音效和动画
+
+
+十、版本历史
+================================================================================
+
+v1.0.0 - 初始版本
+- 实现基础1v1对战
+- 4个可玩角色
+- 完整战斗系统
+- WebSocket实时通信
+
+v1.1.0 - 模块化重构
+- 服务端模块化
+- 前端模块化
+- Buff系统
+- 修复游戏结束流程
+
+
+================================================================================
+                              文档结束
+================================================================================
