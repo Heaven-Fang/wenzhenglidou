@@ -1,0 +1,13 @@
+{
+  "name": "wen-zheng-li-dou",
+  "version": "1.0.0",
+  "description": "文争理斗 - 纯文字回合制网络对战游戏",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2"
+  }
+}

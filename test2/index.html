@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文争理斗</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        
+        .start-screen {
+            text-align: center;
+            padding-top: 100px;
+        }
+        .start-screen h1 {
+            font-size: 48px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px rgba(100, 200, 255, 0.5);
+        }
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        .user-info:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .user-info div {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .form-group {
+            margin: 20px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .form-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .room-screen {
+            padding-top: 20px;
+        }
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .room-header h2 {
+            font-size: 24px;
+        }
+        .room-code {
+            font-size: 18px;
+            color: #4facfe;
+        }
+        
+        .player-list {
+            margin-bottom: 20px;
+        }
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .player-item.host {
+            border: 2px solid #ffd700;
+        }
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .player-name {
+            font-size: 18px;
+        }
+        .player-id {
+            font-size: 12px;
+            color: #888;
+        }
+        .host-badge {
+            background: #ffd700;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .game-log {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .game-log-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+        }
+        
+        .select-screen {
+            padding-top: 20px;
+        }
+        .select-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        .select-player {
+            text-align: center;
+            flex: 1;
+        }
+        .select-player-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .select-player-char {
+            font-size: 14px;
+            color: #4facfe;
+            margin-top: 5px;
+        }
+        .select-vs {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+            padding: 0 20px;
+        }
+        .select-container {
+            display: flex;
+            gap: 20px;
+        }
+        .character-list {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .character-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .character-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .character-item.selected {
+            border: 2px solid #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+        }
+        .character-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .character-title {
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .character-detail {
+            flex: 2;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .detail-section {
+            margin-bottom: 15px;
+        }
+        .detail-section h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #4facfe;
+        }
+        .detail-section p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4facfe;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+        }
+        .skill-item {
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .skill-name {
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .skill-cost {
+            color: #4facfe;
+            font-size: 12px;
+        }
+        
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+        .countdown-overlay.active {
+            display: flex;
+        }
+        .countdown-players {
+            display: flex;
+            gap: 50px;
+            margin-bottom: 30px;
+        }
+        .countdown-player {
+            text-align: center;
+        }
+        .countdown-player-name {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .countdown-player-char {
+            font-size: 20px;
+            color: #4facfe;
+        }
+        .countdown-number {
+            font-size: 100px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .battle-screen {
+            padding-top: 10px;
+        }
+        .battle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .round-info {
+            text-align: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+        .round-info.highlight {
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            transform: scale(1.2);
+        }
+        .phase-info {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .phase-info.highlight {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            transform: scale(1.05);
+        }
+        
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .battle-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .player-panel {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+            max-width: 350px;
+        }
+        .action-log-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 300px;
+        }
+        .action-log {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 300px;
+            height: 500px;
+            overflow-y: auto;
+            border: 2px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .action-log::-webkit-scrollbar {
+            width: 8px;
+        }
+        .action-log::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        .action-log::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+        .action-log::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        .player-panel.attacker {
+            border: 2px solid #f5576c;
+            box-shadow: 0 0 20px rgba(245, 87, 108, 0.3);
+        }
+        .player-panel.highlight {
+            animation: panelHighlight 0.5s ease;
+        }
+        @keyframes panelHighlight {
+            0%, 100% { background: rgba(255,255,255,0.05); }
+            50% { background: rgba(255, 215, 0, 0.2); }
+        }
+        .player-panel h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .hp-bar {
+            width: 100%;
+            height: 24px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f5576c, #f093fb);
+            transition: width 0.5s ease;
+        }
+        .hp-text {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            min-width: 60px;
+        }
+        .stat-box .value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .stat-box .label {
+            font-size: 10px;
+            color: #888;
+        }
+        .bonus {
+            color: #4ade80;
+            font-size: 12px;
+        }
+        .penalty {
+            color: #f87171;
+            font-size: 12px;
+        }
+        
+        .skills-panel {
+            margin-top: 10px;
+        }
+        .talent-panel {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .talent-name {
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 14px;
+        }
+        .talent-desc {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+        .skill-btn {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+        }
+        .skill-btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.2);
+        }
+        .skill-btn.highlight {
+            animation: highlight 0.5s ease;
+            border-color: #ffd700;
+        }
+        @keyframes highlight {
+            0%, 100% { background: rgba(255,255,255,0.1); }
+            50% { background: rgba(255, 215, 0, 0.3); }
+        }
+        .skill-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .skill-full {
+            margin-bottom: 8px;
+        }
+        .skill-desc {
+            font-size: 11px;
+            color: #aaa;
+            padding: 5px 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .summon-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .summon-item {
+            padding: 5px 10px;
+            background: rgba(79, 172, 254, 0.2);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .result-overlay.active {
+            display: flex;
+        }
+        .result-content {
+            text-align: center;
+        }
+        .result-content h1 {
+            font-size: 72px;
+            margin-bottom: 30px;
+        }
+        .result-content.win h1 {
+            color: #4ade80;
+            text-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+        }
+        .result-content.lose h1 {
+            color: #f87171;
+            text-shadow: 0 0 30px rgba(248, 113, 113, 0.5);
+        }
+        
+        .mode-select {
+            display: flex;
+            gap: 10px;
+        }
+        .mode-option {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .mode-option:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .mode-option.selected {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.2);
+        }
+        .mode-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .error-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #f5576c;
+            color: white;
+            border-radius: 8px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .skill-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+        }
+        .skill-modal.active {
+            display: flex;
+        }
+        .skill-modal-content {
+            background: #1a1a2e;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+        }
+        .skill-modal-content h3 {
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        .skill-modal-content p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .skill-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="startScreen" class="screen start-screen active">
+            <div class="user-info" onclick="showScreen('userInfoScreen')">
+                <div>用户名: <span id="displayUsername">player1</span></div>
+                <div>ID: <span id="displayUserId">000000000000</span></div>
+            </div>
+            <h1>文争理斗</h1>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="showScreen('createRoomScreen')">创建房间</button>
+                <button class="btn btn-secondary" onclick="showScreen('joinRoomScreen')">加入房间</button>
+            </div>
+        </div>
+        
+        <div id="userInfoScreen" class="screen">
+            <h2 style="text-align: center; margin-bottom: 30px;">修改用户信息</h2>
+            <div class="form-group">
+                <label>原用户名</label>
+                <input type="text" id="oldUsername" disabled>
+            </div>
+            <div class="form-group">
+                <label>原用户ID</label>
+                <input type="text" id="oldUserId" disabled>
+            </div>
+            <div class="form-group">
+                <label>新用户名 (1-10位数字/字母)</label>
+                <input type="text" id="newUsername" placeholder="输入新用户名">
+            </div>
+            <div class="form-group">
+                <label>新用户ID (12位数字/字母)</label>
+                <input type="text" id="newUserId" placeholder="输入新用户ID">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-primary" onclick="updateUserInfo()">确认修改</button>
+                <button class="btn btn-secondary" onclick="showScreen('startScreen')">取消</button>
+            </div>
+        </div>
+        
+        <div id="createRoomScreen" class="screen">
+            <h2 style="text-align: center; margin-bottom: 30px;">创建房间</h2>
+            <div class="form-group">
+                <label>对战模式</label>
+                <div class="mode-select">
+                    <div class="mode-option selected" onclick="selectMode(this, '1v1')">1v1模式</div>
+                    <div class="mode-option disabled">3v3模式(暂未开放)</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>房间码 (6-8位数字/字母)</label>
+                <input type="text" id="roomCodeInput" placeholder="输入房间码">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-primary" onclick="createRoom()">开启房间</button>
+                <button class="btn btn-secondary" onclick="showScreen('startScreen')">退出</button>
+            </div>
+        </div>
+        
+        <div id="joinRoomScreen" class="screen">
+            <h2 style="text-align: center; margin-bottom: 30px;">加入房间</h2>
+            <div class="form-group">
+                <label>房间码</label>
+                <input type="text" id="joinRoomCodeInput" placeholder="输入房间码">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-primary" onclick="joinRoom()">加入房间</button>
+                <button class="btn btn-secondary" onclick="showScreen('startScreen')">退出</button>
+            </div>
+        </div>
+        
+        <div id="roomScreen" class="screen room-screen">
+            <div class="room-header">
+                <div>
+                    <h2>房间</h2>
+                    <span class="room-code">房间码: <span id="currentRoomCode"></span></span>
+                </div>
+                <span id="currentMode">1v1模式</span>
+            </div>
+            
+            <div class="player-list" id="playerList"></div>
+            
+            <div class="game-log" id="roomGameLog"></div>
+            
+            <div style="text-align: center;">
+                <button class="btn btn-danger" onclick="leaveRoom()">退出房间</button>
+            </div>
+        </div>
+        
+        <div id="selectScreen" class="screen select-screen">
+            <div class="select-header">
+                <div class="select-player">
+                    <div class="select-player-name" id="myUsername">玩家1</div>
+                    <div class="select-player-char" id="mySelectedChar">未选择</div>
+                </div>
+                <div class="select-vs">VS</div>
+                <div class="select-player">
+                    <div class="select-player-name" id="opponentUsername">玩家2</div>
+                    <div class="select-player-char" id="opponentSelectedChar">未选择</div>
+                </div>
+            </div>
+            
+            <div class="select-container">
+                <div class="character-list" id="characterList"></div>
+                <div class="character-detail" id="characterDetail">
+                    <p style="text-align: center; color: #888;">请选择一个角色查看详情</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-success" id="readyBtn" onclick="toggleReady()">准备好了</button>
+                <button class="btn btn-danger" onclick="exitGame()">退出游戏</button>
+            </div>
+        </div>
+        
+        <div id="battleScreen" class="screen battle-screen">
+            <div class="battle-header">
+                <span id="battleMyName">玩家1</span>
+                <div class="round-info" id="roundInfo">第 <span id="roundNumber">1</span> 回合</div>
+                <span id="battleOpponentName">玩家2</span>
+            </div>
+            
+            <div class="phase-info" id="phaseInfo">等待开始...</div>
+            
+            <div class="battle-area">
+                <div class="player-panel" id="player1Panel">
+                    <h3 id="player1CharName">角色名</h3>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="player1HpFill" style="width: 100%"></div>
+                    </div>
+                    <div class="hp-text"><span id="player1Hp">7</span>/<span id="player1MaxHp">7</span></div>
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="value" id="player1Atk">20</div>
+                            <div class="label">ATK</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="player1Def">3</div>
+                            <div class="label">DEF</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value"><span id="player1Sp">1</span>/<span id="player1MaxSp">6</span></div>
+                            <div class="label">SP</div>
+                        </div>
+                    </div>
+                    <div class="summon-area" id="player1Summons"></div>
+                    <div class="talent-panel" id="player1Talent"></div>
+                    <div class="skills-panel" id="player1Skills"></div>
+                </div>
+                
+                <div class="action-log-container">
+                    <div class="action-log" id="actionLog"></div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="confirmActionBtn" onclick="confirmAction()">确认行动</button>
+                    </div>
+                </div>
+                
+                <div class="player-panel" id="player2Panel">
+                    <h3 id="player2CharName">角色名</h3>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="player2HpFill" style="width: 100%"></div>
+                    </div>
+                    <div class="hp-text"><span id="player2Hp">11</span>/<span id="player2MaxHp">11</span></div>
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="value" id="player2Atk">30</div>
+                            <div class="label">ATK</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="player2Def">4</div>
+                            <div class="label">DEF</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value"><span id="player2Sp">3</span>/<span id="player2MaxSp">6</span></div>
+                            <div class="label">SP</div>
+                        </div>
+                    </div>
+                    <div class="summon-area" id="player2Summons"></div>
+                    <div class="talent-panel" id="player2Talent"></div>
+                    <div class="skills-panel" id="player2Skills"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="countdownOverlay" class="countdown-overlay">
+        <div class="countdown-players">
+            <div class="countdown-player">
+                <div class="countdown-player-name" id="countdownPlayer1">玩家1</div>
+                <div class="countdown-player-char" id="countdownChar1">角色</div>
+            </div>
+            <div class="countdown-player">
+                <div class="countdown-player-name" id="countdownPlayer2">玩家2</div>
+                <div class="countdown-player-char" id="countdownChar2">角色</div>
+            </div>
+        </div>
+        <div class="countdown-number" id="countdownNumber">5</div>
+    </div>
+    
+    <div id="resultOverlay" class="result-overlay">
+        <div class="result-content" id="resultContent">
+            <h1 id="resultText">得胜</h1>
+            <button class="btn btn-primary" onclick="backToRoom()">返回房间</button>
+        </div>
+    </div>
+    
+    <div id="skillModal" class="skill-modal">
+        <div class="skill-modal-content">
+            <h3 id="skillModalName">技能名</h3>
+            <p id="skillModalDesc">技能描述</p>
+            <div class="skill-modal-buttons">
+                <button class="btn btn-primary" id="useSkillBtn" onclick="confirmUseSkill()">释放技能</button>
+                <button class="btn btn-secondary" onclick="closeSkillModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let userId = '000000000000';
+        let username = 'player1';
+        let currentRoom = null;
+        let isHost = false;
+        let playerNumber = 1;
+        let selectedCharacter = null;
+        let isReady = false;
+        let gameState = null;
+        let currentSkillId = null;
+        let selectedMode = '1v1';
+        let opponentCharacter = null;
+        let opponentReady = false;
+        
+        const characters = {
+            1: {
+                id: 1,
+                name: '爱丽丝',
+                title: '七色人偶使',
+                tag: '召唤，消耗',
+                description: '通过召唤物进行辅助作战',
+                maxHP: 7,
+                atk: 20,
+                def: 3,
+                maxSP: 6,
+                initSP: 1,
+                talent: {
+                    name: '人偶师',
+                    description: '爱丽丝召唤的所有人偶(HP:4，DEF:0)为爱丽丝分摊50%的伤害(包含普通伤害与真实伤害)(若普通伤害为奇数，则人偶分摊较大部分的伤害)'
+                },
+                skills: [
+                    { id: 1, name: '开幕', type: 'passive', timing: 'before', spCost: 0, description: '第一回合开始时召唤一个人偶。回合开始时，场上每存在一个人偶，爱丽丝ATK+8' },
+                    { id: 2, name: '蓬莱人偶', type: 'active', timing: 'before', spCost: 1, description: '立即召唤1个蓬莱人偶(存在2回合后(包含本回合)在第三个回合开始时自爆并消失，造成1*当前人偶数+2的普通伤害)' },
+                    { id: 3, name: '上海人偶', type: 'active', timing: 'before', spCost: 2, description: '立即召唤1个上海人偶(若HP未归零则永久存在，每回合开始时对对方造成1*人偶数+1的普通伤害，该人偶判定在蓬莱人偶自爆之前)' }
+                ]
+            },
+            2: {
+                id: 2,
+                name: '四月',
+                title: '灵巧的猎手',
+                tag: '先手，削弱',
+                description: '通过抢夺行动权获取优势',
+                maxHP: 11,
+                atk: 30,
+                def: 4,
+                maxSP: 6,
+                initSP: 3,
+                talent: {
+                    name: '本能',
+                    description: '每次成为进攻方时，立即使自身ATK+2(最多+10)，同时使对方下一回合行动判定随机数-10。'
+                },
+                skills: [
+                    { id: 1, name: '速射装填', type: 'active', timing: 'before', spCost: 2, description: '本回合行动判定随机数+20。若本回合成为进攻方，额外进行一次独立攻击(重复一次攻击方行动与防守方行动)。' },
+                    { id: 2, name: '精准瞄准', type: 'active', timing: 'middle', spCost: 3, description: '本回合造成伤害+2，本回合内若攻击命中，永久使敌方DEF-1。' },
+                    { id: 3, name: '连携突袭', type: 'active', timing: 'all', spCost: 5, description: '立即获得1次行动权。行动时ATK+5，且使对方下回合行动判定随机数-30。' }
+                ]
+            },
+            3: {
+                id: 3,
+                name: '五更',
+                title: '厄运黑猫',
+                tag: '生存，回转',
+                description: '利用快速的技能恢复扩大优势',
+                maxHP: 10,
+                atk: 30,
+                def: 3,
+                maxSP: 8,
+                initSP: 2,
+                talent: {
+                    name: '夜行',
+                    description: '奇数回合自身ATK+5，偶数回合自身造成的普通伤害+1。'
+                },
+                skills: [
+                    { id: 1, name: '预兆', type: 'active', timing: 'before', spCost: 2, description: '指定1名角色，使其本回合随机数-15，下回合随机数-5。若本回合或下回合对方成为防守方，立即使自身SP+1，本回合及下回合通过这种方式总共至多增加一次SP。' },
+                    { id: 2, name: '不语', type: 'active', timing: 'before', spCost: 3, description: '本回合行动判定随机数+15，若本回合我方成为进攻方，立刻获得4SP；若本回合我方成为防守方，自身DEF+1，该效果持续到本回合结束。' },
+                    { id: 3, name: '揭示', type: 'active', timing: 'all', spCost: 7, description: '指定一名角色，自本回合开始，每回合结束时受到1真实伤害，持续4回合。' }
+                ]
+            },
+            4: {
+                id: 4,
+                name: '杏子',
+                title: '无拘算命师',
+                tag: '爆发',
+                description: '听天由命，伺机行动',
+                maxHP: 6,
+                atk: 15,
+                def: 5,
+                maxSP: 6,
+                initSP: 0,
+                talent: {
+                    name: '走险',
+                    description: '若闪避判定成功，自身SP+1。'
+                },
+                skills: [
+                    { id: 1, name: '度算', type: 'passive', timing: 'before', spCost: 0, description: '自身按不同的行动值大小获得不同增益：行动判定点数1--70，ATK永久+3（最多+15）；行动判定点数71--150，立即使自身SP+1,SP上限+1（通过这种方式SP上限最多+5）；行动判定点数151以上，对人造成的普通伤害+1（无上限）。' },
+                    { id: 2, name: '厚积', type: 'active', timing: 'before', spCost: 1, description: '使本回合双方在本回合【前】技能释放步骤结束后跳过本回合的行动值比拼步骤，直接使对方成为进攻方，我方成为防守方。本回合我方受到的普通伤害-1。下一回合的行动值比拼步骤的我方的随机数取2次，取大的那一个作为本回合行动值比拼步骤中我方的随机数。本回合进行一技能判定时，行动判定点数的值改为本回合所取得两个随机数相加再加上我方当前的ATK。（若该技能在本回合释放后下回合禁用）' },
+                    { id: 3, name: '定命', type: 'active', timing: 'before', spCost: 7, description: '指定一名角色，立刻造成大量伤害：2+增伤+(自身SP上限-4)。增伤：角色通过自身技能或特殊道具获得的另一种数值，与普通伤害叠加，向对手造成更大打击。公式：最终伤害=普通伤害+增伤，增伤效果在闪避判定之前计算。' }
+                ]
+            }
+        };
+        
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket连接成功');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket连接断开');
+                setTimeout(() => {
+                    if (currentRoom) {
+                        connect();
+                    }
+                }, 3000);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket错误:', error);
+            };
+        }
+        
+        function handleMessage(data) {
+            switch (data.type) {
+                case 'connected':
+                    userId = data.userId;
+                    username = data.username;
+                    updateDisplayUserInfo();
+                    break;
+                    
+                case 'userInfoUpdated':
+                    username = data.username;
+                    userId = data.userId;
+                    updateDisplayUserInfo();
+                    showToast('用户信息更新成功！');
+                    showScreen('startScreen');
+                    break;
+                    
+                case 'roomCreated':
+                    currentRoom = data.roomCode;
+                    isHost = true;
+                    document.getElementById('currentRoomCode').textContent = data.roomCode;
+                    showScreen('roomScreen');
+                    requestRoomInfo();
+                    break;
+                    
+                case 'roomJoined':
+                    currentRoom = data.roomCode;
+                    isHost = false;
+                    document.getElementById('currentRoomCode').textContent = data.roomCode;
+                    showScreen('roomScreen');
+                    requestRoomInfo();
+                    break;
+                    
+                case 'roomInfo':
+                    updateRoomInfo(data);
+                    break;
+                    
+                case 'playerJoined':
+                    showToast(`${data.username} 加入了房间！`);
+                    requestRoomInfo();
+                    break;
+                    
+                case 'playerLeft':
+                    showToast(`${data.username} 离开了房间`);
+                    requestRoomInfo();
+                    break;
+                    
+                case 'challengeRequest':
+                    if (confirm(`${data.from} 向你发起挑战，是否接受？`)) {
+                        ws.send(JSON.stringify({ type: 'acceptChallenge' }));
+                    }
+                    break;
+                    
+                case 'gameStart':
+                    playerNumber = data.playerNumber;
+                    showScreen('selectScreen');
+                    initCharacterSelect();
+                    break;
+                    
+                case 'opponentSelected':
+                    opponentCharacter = data.characterId;
+                    opponentReady = data.ready;
+                    updateOpponentSelection();
+                    break;
+                    
+                case 'bothReady':
+                    showCountdown(data.player1Name, data.player2Name, data.player1Char, data.player2Char);
+                    break;
+                    
+                case 'battleStart':
+                    gameState = data.gameState;
+                    document.getElementById('countdownOverlay').classList.remove('active');
+                    showScreen('battleScreen');
+                    updateBattleUI();
+                    break;
+                    
+                case 'gameUpdate':
+                    gameState = data.gameState;
+                    updateBattleUI();
+                    break;
+                    
+                case 'phaseChange':
+                    gameState = data.gameState;
+                    updateBattleUI();
+                    highlightPhase();
+                    break;
+                    
+                case 'gameEnd':
+                    gameState = data.gameState;
+                    disableAllInteractions();
+                    updateBattleUI();
+                    showGameResult(data.winner);
+                    break;
+                    
+                case 'roomClosed':
+                    showToast('房间已关闭');
+                    currentRoom = null;
+                    showScreen('startScreen');
+                    break;
+                    
+                case 'leftRoom':
+                    currentRoom = null;
+                    showScreen('startScreen');
+                    break;
+                    
+                case 'error':
+                    showToast(data.message);
+                    break;
+            }
+        }
+        
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+        
+        function updateDisplayUserInfo() {
+            document.getElementById('displayUsername').textContent = username;
+            document.getElementById('displayUserId').textContent = userId;
+            document.getElementById('oldUsername').value = username;
+            document.getElementById('oldUserId').value = userId;
+        }
+        
+        function updateUserInfo() {
+            const newUsername = document.getElementById('newUsername').value;
+            const newUserId = document.getElementById('newUserId').value;
+            
+            ws.send(JSON.stringify({
+                type: 'updateUserInfo',
+                username: newUsername || username,
+                userId: newUserId || userId
+            }));
+        }
+        
+        function selectMode(element, mode) {
+            if (element.classList.contains('disabled')) return;
+            document.querySelectorAll('.mode-option').forEach(e => e.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedMode = mode;
+        }
+        
+        function createRoom() {
+            const roomCode = document.getElementById('roomCodeInput').value;
+            if (!roomCode) {
+                showToast('请输入房间码');
+                return;
+            }
+            if (!/^[A-Za-z0-9]{6,8}$/.test(roomCode)) {
+                showToast('房间码格式不正确');
+                return;
+            }
+            ws.send(JSON.stringify({
+                type: 'createRoom',
+                roomCode: roomCode,
+                mode: selectedMode
+            }));
+        }
+        
+        function joinRoom() {
+            const roomCode = document.getElementById('joinRoomCodeInput').value;
+            if (!roomCode) {
+                showToast('请输入房间码');
+                return;
+            }
+            ws.send(JSON.stringify({
+                type: 'joinRoom',
+                roomCode: roomCode
+            }));
+        }
+        
+        function requestRoomInfo() {
+            ws.send(JSON.stringify({ type: 'getRoomInfo' }));
+        }
+        
+        function updateRoomInfo(data) {
+            document.getElementById('currentRoomCode').textContent = data.roomCode;
+            document.getElementById('currentMode').textContent = data.mode === '1v1' ? '1v1模式' : '3v3模式';
+            
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = '';
+            
+            data.players.forEach((player, index) => {
+                const div = document.createElement('div');
+                div.className = `player-item ${player.isHost ? 'host' : ''}`;
+                const isMe = player.userId === userId;
+                div.innerHTML = `
+                    <div class="player-info">
+                        <span class="player-name">${player.username}</span>
+                        ${player.isHost ? '<span class="host-badge">房主</span>' : ''}
+                        <span class="player-id">${player.userId}</span>
+                    </div>
+                    ${!isMe ? `<button class="btn btn-primary" onclick="challengePlayer()">发起挑战</button>` : ''}
+                `;
+                playerList.appendChild(div);
+            });
+            
+            const gameLog = document.getElementById('roomGameLog');
+            gameLog.innerHTML = data.gameLog.map(log => 
+                `<div class="game-log-item">${log.player1} vs ${log.player2} - 胜者: ${log.winner === 0 ? '平局' : (log.winner === 1 ? log.player1 : log.player2)}</div>`
+            ).join('');
+        }
+        
+        function challengePlayer() {
+            ws.send(JSON.stringify({ type: 'challenge' }));
+        }
+        
+        function leaveRoom() {
+            ws.send(JSON.stringify({ type: 'leaveRoom' }));
+        }
+        
+        function initCharacterSelect() {
+            const list = document.getElementById('characterList');
+            list.innerHTML = '';
+            
+            Object.values(characters).forEach(char => {
+                const div = document.createElement('div');
+                div.className = 'character-item';
+                div.onclick = () => selectCharacter(char.id);
+                div.innerHTML = `
+                    <div class="character-name">${char.name}</div>
+                    <div class="character-title">——${char.title}</div>
+                `;
+                list.appendChild(div);
+            });
+            
+            selectedCharacter = null;
+            isReady = false;
+            opponentCharacter = null;
+            opponentReady = false;
+            updateReadyButton();
+            updateMySelection();
+            updateOpponentSelection();
+        }
+        
+        function selectCharacter(charId) {
+            if (isReady) return;
+            
+            selectedCharacter = charId;
+            
+            document.querySelectorAll('.character-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            const char = characters[charId];
+            const detail = document.getElementById('characterDetail');
+            detail.innerHTML = `
+                <div class="detail-section">
+                    <h3>${char.name}——${char.title}</h3>
+                    <p><strong>标签:</strong> ${char.tag}</p>
+                    <p>${char.description}</p>
+                </div>
+                <div class="detail-section">
+                    <h3>战斗属性</h3>
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">${char.maxHP}</div>
+                            <div class="stat-label">HP</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${char.atk}</div>
+                            <div class="stat-label">ATK</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${char.def}</div>
+                            <div class="stat-label">DEF</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${char.initSP}/${char.maxSP}</div>
+                            <div class="stat-label">SP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <h3>天赋: ${char.talent.name}</h3>
+                    <p>${char.talent.description}</p>
+                </div>
+                <div class="detail-section">
+                    <h3>技能</h3>
+                    ${char.skills.map(skill => `
+                        <div class="skill-item">
+                            <span class="skill-name">【${skill.name}】</span>
+                            <span class="skill-cost">${skill.type === 'active' ? `SP: ${skill.spCost}` : '被动'}</span>
+                            <p>${skill.description}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            updateMySelection();
+        }
+        
+        function updateMySelection() {
+            const charDisplay = document.getElementById('mySelectedChar');
+            if (selectedCharacter) {
+                const char = characters[selectedCharacter];
+                charDisplay.textContent = `${char.name}——${char.title}`;
+            } else {
+                charDisplay.textContent = '未选择';
+            }
+        }
+        
+        function updateOpponentSelection() {
+            const charDisplay = document.getElementById('opponentSelectedChar');
+            if (opponentCharacter) {
+                const char = characters[opponentCharacter];
+                charDisplay.textContent = `${char.name}——${char.title}${opponentReady ? ' (已准备)' : ''}`;
+            } else {
+                charDisplay.textContent = '未选择';
+            }
+        }
+        
+        function toggleReady() {
+            if (!selectedCharacter) {
+                showToast('请先选择角色');
+                return;
+            }
+            
+            isReady = !isReady;
+            updateReadyButton();
+            updateMySelection();
+            
+            ws.send(JSON.stringify({
+                type: 'selectCharacter',
+                characterId: selectedCharacter,
+                ready: isReady
+            }));
+        }
+        
+        function updateReadyButton() {
+            const btn = document.getElementById('readyBtn');
+            btn.textContent = isReady ? '取消准备' : '准备好了';
+            btn.className = isReady ? 'btn btn-secondary' : 'btn btn-success';
+        }
+        
+        function showCountdown(p1Name, p2Name, p1Char, p2Char) {
+            document.getElementById('countdownPlayer1').textContent = p1Name;
+            document.getElementById('countdownPlayer2').textContent = p2Name;
+            document.getElementById('countdownChar1').textContent = p1Char;
+            document.getElementById('countdownChar2').textContent = p2Char;
+            
+            const overlay = document.getElementById('countdownOverlay');
+            const numberDiv = document.getElementById('countdownNumber');
+            overlay.classList.add('active');
+            
+            let count = 5;
+            numberDiv.textContent = count;
+            
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    numberDiv.textContent = count;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+        
+        function exitGame() {
+            ws.send(JSON.stringify({ type: 'leaveRoom' }));
+        }
+        
+        function updateBattleUI() {
+            if (!gameState) return;
+            
+            document.getElementById('roundNumber').textContent = gameState.round;
+            document.getElementById('phaseInfo').textContent = getPhaseText(gameState.phase);
+            
+            updatePlayerPanel(1, gameState.player1, gameState.attacker === 1);
+            updatePlayerPanel(2, gameState.player2, gameState.attacker === 2);
+            
+            const actionLog = document.getElementById('actionLog');
+            actionLog.innerHTML = gameState.logs.slice(-10).map(log => 
+                `<div class="log-entry">${log}</div>`
+            ).join('');
+            actionLog.scrollTop = actionLog.scrollHeight;
+            
+            updateConfirmButton();
+        }
+        
+        function getPhaseText(phase) {
+            const phaseTexts = {
+                'roundStart': '宣告本轮次开始',
+                'summonAction': '召唤物行动',
+                'beforeSkill': '【前】技能释放阶段',
+                'actionCompare': '双方行动值比拼',
+                'attackerAction': '攻击方行动',
+                'defenderAction': '防守方行动',
+                'settlement': '攻防行动结算',
+                'afterSkill': '【后】技能释放阶段',
+                'roundEnd': '宣告本轮次结束'
+            };
+            return phaseTexts[phase] || phase;
+        }
+        
+        function highlightPhase() {
+            const phaseInfo = document.getElementById('phaseInfo');
+            const roundInfo = document.getElementById('roundInfo');
+            
+            phaseInfo.classList.add('highlight');
+            roundInfo.classList.add('highlight');
+            
+            setTimeout(() => {
+                phaseInfo.classList.remove('highlight');
+                roundInfo.classList.remove('highlight');
+            }, 500);
+        }
+        
+        function updateConfirmButton() {
+            const btn = document.getElementById('confirmActionBtn');
+            const phase = gameState.phase;
+            const myState = playerNumber === 1 ? gameState.player1 : gameState.player2;
+            
+            if (myState.confirmed) {
+                btn.disabled = true;
+                return;
+            }
+            
+            const canConfirm = 
+                phase === 'beforeSkill' || 
+                phase === 'afterSkill' ||
+                (phase === 'attackerAction' && gameState.attacker === playerNumber) ||
+                (phase === 'defenderAction' && gameState.defender === playerNumber);
+            
+            btn.disabled = !canConfirm;
+        }
+        
+        function updatePlayerPanel(player, state, isAttacker) {
+            const panel = document.getElementById(`player${player}Panel`);
+            const char = characters[state.characterId];
+            
+            panel.classList.toggle('attacker', isAttacker);
+            
+            document.getElementById(`player${player}CharName`).textContent = `${char.name}——${char.title}`;
+            document.getElementById(`player${player}Hp`).textContent = state.hp;
+            document.getElementById(`player${player}MaxHp`).textContent = state.maxHP;
+            document.getElementById(`player${player}HpFill`).style.width = `${(state.hp / state.maxHP) * 100}%`;
+            
+            let atkDisplay = state.baseAtk;
+            if (state.atkBonus !== 0) {
+                atkDisplay += `<span class="${state.atkBonus > 0 ? 'bonus' : 'penalty'}">${state.atkBonus > 0 ? '+' : ''}${state.atkBonus}</span>`;
+            }
+            document.getElementById(`player${player}Atk`).innerHTML = atkDisplay;
+            
+            let defDisplay = state.baseDef;
+            if (state.defBonus !== 0) {
+                defDisplay += `<span class="${state.defBonus > 0 ? 'bonus' : 'penalty'}">${state.defBonus > 0 ? '+' : ''}${state.defBonus}</span>`;
+            }
+            document.getElementById(`player${player}Def`).innerHTML = defDisplay;
+            
+            document.getElementById(`player${player}Sp`).textContent = state.sp;
+            document.getElementById(`player${player}MaxSp`).textContent = state.maxSP;
+            
+            const summonsDiv = document.getElementById(`player${player}Summons`);
+            const allSummons = [...state.summonedDolls, ...state.summons].filter(s => s.hp > 0);
+            summonsDiv.innerHTML = allSummons.map(s => 
+                `<div class="summon-item">${s.type === 'penglai' ? '蓬莱人偶' : s.type === 'shanghai' ? '上海人偶' : '人偶'} HP:${s.hp}</div>`
+            ).join('');
+            
+            const talentDiv = document.getElementById(`player${player}Talent`);
+            talentDiv.innerHTML = `
+                <div class="talent-name">天赋：${char.talent.name}</div>
+                <div class="talent-desc">${char.talent.description}</div>
+            `;
+            
+            const skillsDiv = document.getElementById(`player${player}Skills`);
+            skillsDiv.innerHTML = char.skills.map(skill => {
+                const canUse = canUseSkill(player, skill);
+                const skillType = skill.type === 'passive' ? '被动' : `SP:${skill.spCost}`;
+                return `
+                    <div class="skill-full">
+                        <button class="skill-btn" ${!canUse ? 'disabled' : ''} onclick="showSkillModal(${player}, ${skill.id})">
+                            <span class="skill-name">【${skill.name}】</span>
+                            <span class="skill-cost">${skillType}</span>
+                        </button>
+                        <div class="skill-desc">${skill.description}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function canUseSkill(player, skill) {
+            if (player !== playerNumber) return false;
+            if (skill.type !== 'active') return false;
+            
+            const state = gameState[`player${player}`];
+            if (state.sp < skill.spCost) return false;
+            if (gameState.turnUsedSkills.includes(`${player}-${skill.id}`)) return false;
+            
+            if (state.characterId === 4 && skill.id === 2 && state.thickAccumulationCooldown > 0) return false;
+            if (state.characterId === 3 && skill.id === 1 && state.premonitionDisabled) return false;
+            
+            const phase = gameState.phase;
+            const timing = skill.timing;
+            
+            if (timing === 'all') return true;
+            
+            if (phase === 'beforeSkill' && timing === 'before') return true;
+            if (phase === 'attackerAction' && gameState.attacker === playerNumber && timing === 'middle') return true;
+            if (phase === 'defenderAction' && gameState.defender === playerNumber && timing === 'middle') return true;
+            if (phase === 'afterSkill' && timing === 'after') return true;
+            
+            return false;
+        }
+        
+        function showSkillModal(player, skillId) {
+            if (player !== playerNumber) return;
+            
+            const char = characters[gameState[`player${player}`].characterId];
+            const skill = char.skills.find(s => s.id === skillId);
+            
+            currentSkillId = skillId;
+            
+            document.getElementById('skillModalName').textContent = `【${skill.name}】 SP: ${skill.spCost}`;
+            document.getElementById('skillModalDesc').textContent = skill.description;
+            document.getElementById('skillModal').classList.add('active');
+        }
+        
+        function closeSkillModal() {
+            document.getElementById('skillModal').classList.remove('active');
+            currentSkillId = null;
+        }
+        
+        function confirmUseSkill() {
+            if (currentSkillId) {
+                ws.send(JSON.stringify({
+                    type: 'useSkill',
+                    skillId: currentSkillId,
+                    targetPlayer: playerNumber === 1 ? 2 : 1
+                }));
+                
+                const btn = document.querySelector(`.skill-btn[onclick*="${currentSkillId}"]`);
+                if (btn) {
+                    btn.classList.add('highlight');
+                    setTimeout(() => btn.classList.remove('highlight'), 500);
+                }
+            }
+            closeSkillModal();
+        }
+        
+        function confirmAction() {
+            const btn = document.getElementById('confirmActionBtn');
+            btn.disabled = true;
+            
+            const myPanel = document.getElementById(`player${playerNumber}Panel`);
+            myPanel.querySelectorAll('.skill-btn').forEach(skillBtn => {
+                skillBtn.disabled = true;
+            });
+            
+            ws.send(JSON.stringify({ type: 'confirmAction' }));
+        }
+        
+        function disableAllInteractions() {
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            confirmBtn.disabled = true;
+            
+            document.querySelectorAll('.skill-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+        
+        function showGameResult(winner) {
+            const player1Panel = document.getElementById('player1Panel');
+            const player2Panel = document.getElementById('player2Panel');
+            
+            player1Panel.classList.remove('attacker', 'highlight');
+            player2Panel.classList.remove('attacker', 'highlight');
+            
+            const actionLog = document.getElementById('actionLog');
+            
+            setTimeout(() => {
+                let resultText = '';
+                if (winner === 0) {
+                    resultText = '平局！';
+                } else if (winner === 1) {
+                    resultText = '玩家1 获胜！';
+                    player1Panel.classList.add('highlight');
+                    player2Panel.style.opacity = '0.5';
+                } else {
+                    resultText = '玩家2 获胜！';
+                    player2Panel.classList.add('highlight');
+                    player1Panel.style.opacity = '0.5';
+                }
+                
+                const resultEntry = document.createElement('div');
+                resultEntry.className = 'log-entry';
+                resultEntry.style.color = '#ffd700';
+                resultEntry.style.fontSize = '20px';
+                resultEntry.textContent = resultText;
+                actionLog.appendChild(resultEntry);
+                actionLog.scrollTop = actionLog.scrollHeight;
+                
+                setTimeout(() => {
+                    const overlay = document.getElementById('resultOverlay');
+                    const content = document.getElementById('resultContent');
+                    const text = document.getElementById('resultText');
+                    
+                    if (winner === playerNumber) {
+                        text.textContent = '得胜';
+                        content.className = 'result-content win';
+                    } else if (winner === 0) {
+                        text.textContent = '平局';
+                        content.className = 'result-content';
+                    } else {
+                        text.textContent = '惜败';
+                        content.className = 'result-content lose';
+                    }
+                    
+                    overlay.classList.add('active');
+                }, 2000);
+            }, 2000);
+        }
+        
+        function backToRoom() {
+            document.getElementById('resultOverlay').classList.remove('active');
+            document.getElementById('player1Panel').style.opacity = '1';
+            document.getElementById('player2Panel').style.opacity = '1';
+            showScreen('roomScreen');
+            requestRoomInfo();
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'error-toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        connect();
+    </script>
+</body>
+</html>
