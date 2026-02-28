@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文争理斗</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="container">
+        <div id="startScreen" class="screen start-screen active">
+            <div class="user-info" onclick="UI.showScreen('userInfoScreen')">
+                <div>用户名: <span id="displayUsername">player1</span></div>
+                <div>ID: <span id="displayUserId">000000000000</span></div>
+            </div>
+            <h1>文争理斗</h1>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="UI.showScreen('createRoomScreen')">创建房间</button>
+                <button class="btn btn-secondary" onclick="UI.showScreen('joinRoomScreen')">加入房间</button>
+            </div>
+        </div>
+        
+        <div id="userInfoScreen" class="screen">
+            <h2 style="text-align: center; margin-bottom: 30px;">修改用户信息</h2>
+            <div class="form-group">
+                <label>原用户名</label>
+                <input type="text" id="oldUsername" disabled>
+            </div>
+            <div class="form-group">
+                <label>原用户ID</label>
+                <input type="text" id="oldUserId" disabled>
+            </div>
+            <div class="form-group">
+                <label>新用户名 (1-10位数字/字母)</label>
+                <input type="text" id="newUsername" placeholder="输入新用户名">
+            </div>
+            <div class="form-group">
+                <label>新用户ID (12位数字/字母)</label>
+                <input type="text" id="newUserId" placeholder="输入新用户ID">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-primary" onclick="Game.updateUserInfo()">确认修改</button>
+                <button class="btn btn-secondary" onclick="UI.showScreen('startScreen')">取消</button>
+            </div>
+        </div>
+        
+        <div id="createRoomScreen" class="screen">
+            <h2 style="text-align: center; margin-bottom: 30px;">创建房间</h2>
+            <div class="form-group">
+                <label>对战模式</label>
+                <div class="mode-select">
+                    <div class="mode-option selected" onclick="Game.selectMode(this, '1v1')">1v1模式</div>
+                    <div class="mode-option disabled">3v3模式(暂未开放)</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>房间码 (6-8位数字/字母)</label>
+                <input type="text" id="roomCodeInput" placeholder="输入房间码">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-primary" onclick="Game.createRoom()">开启房间</button>
+                <button class="btn btn-secondary" onclick="UI.showScreen('startScreen')">退出</button>
+            </div>
+        </div>
+        
+        <div id="joinRoomScreen" class="screen">
+            <h2 style="text-align: center; margin-bottom: 30px;">加入房间</h2>
+            <div class="form-group">
+                <label>房间码</label>
+                <input type="text" id="joinRoomCodeInput" placeholder="输入房间码">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-primary" onclick="Game.joinRoom()">加入房间</button>
+                <button class="btn btn-secondary" onclick="UI.showScreen('startScreen')">退出</button>
+            </div>
+        </div>
+        
+        <div id="roomScreen" class="screen room-screen">
+            <div class="room-header">
+                <div>
+                    <h2>房间</h2>
+                    <span class="room-code">房间码: <span id="currentRoomCode"></span></span>
+                </div>
+                <span id="currentMode">1v1模式</span>
+            </div>
+            
+            <div class="player-list" id="playerList"></div>
+            
+            <div class="game-log" id="roomGameLog"></div>
+            
+            <div style="text-align: center;">
+                <button class="btn btn-danger" onclick="Game.leaveRoom()">退出房间</button>
+            </div>
+        </div>
+        
+        <div id="selectScreen" class="screen select-screen">
+            <div class="select-header">
+                <div class="select-player">
+                    <div class="select-player-name" id="myUsername">玩家1</div>
+                    <div class="select-player-char" id="mySelectedChar">未选择</div>
+                </div>
+                <div class="select-vs">VS</div>
+                <div class="select-player">
+                    <div class="select-player-name" id="opponentUsername">玩家2</div>
+                    <div class="select-player-char" id="opponentSelectedChar">未选择</div>
+                </div>
+            </div>
+            
+            <div class="select-container">
+                <div class="character-list" id="characterList"></div>
+                <div class="character-detail" id="characterDetail">
+                    <p style="text-align: center; color: #888;">请选择一个角色查看详情</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-success" id="readyBtn" onclick="Game.toggleReady()">准备好了</button>
+                <button class="btn btn-danger" onclick="Game.exitGame()">退出游戏</button>
+            </div>
+        </div>
+        
+        <div id="battleScreen" class="screen battle-screen">
+            <div class="battle-header">
+                <span id="battleMyName">玩家1</span>
+                <div class="round-info" id="roundInfo">第 <span id="roundNumber">1</span> 回合</div>
+                <span id="battleOpponentName">玩家2</span>
+            </div>
+            
+            <div class="phase-info" id="phaseInfo">等待开始...</div>
+            
+            <div class="battle-area">
+                <div class="player-panel" id="player1Panel">
+                    <h3 id="player1CharName">角色名</h3>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="player1HpFill" style="width: 100%"></div>
+                    </div>
+                    <div class="hp-text"><span id="player1Hp">7</span>/<span id="player1MaxHp">7</span></div>
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="value" id="player1Atk">20</div>
+                            <div class="label">ATK</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="player1Def">3</div>
+                            <div class="label">DEF</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value"><span id="player1Sp">1</span>/<span id="player1MaxSp">6</span></div>
+                            <div class="label">SP</div>
+                        </div>
+                    </div>
+                    <div class="summon-area" id="player1Summons"></div>
+                    <div class="buff-area" id="player1Buffs"></div>
+                    <div class="talent-panel" id="player1Talent"></div>
+                    <div class="skills-panel" id="player1Skills"></div>
+                </div>
+                
+                <div class="action-log-container">
+                    <div class="action-log" id="actionLog"></div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="confirmActionBtn" onclick="Game.confirmAction()">确认行动</button>
+                    </div>
+                </div>
+                
+                <div class="player-panel" id="player2Panel">
+                    <h3 id="player2CharName">角色名</h3>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="player2HpFill" style="width: 100%"></div>
+                    </div>
+                    <div class="hp-text"><span id="player2Hp">11</span>/<span id="player2MaxHp">11</span></div>
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="value" id="player2Atk">30</div>
+                            <div class="label">ATK</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="player2Def">4</div>
+                            <div class="label">DEF</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value"><span id="player2Sp">3</span>/<span id="player2MaxSp">6</span></div>
+                            <div class="label">SP</div>
+                        </div>
+                    </div>
+                    <div class="summon-area" id="player2Summons"></div>
+                    <div class="buff-area" id="player2Buffs"></div>
+                    <div class="talent-panel" id="player2Talent"></div>
+                    <div class="skills-panel" id="player2Skills"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="countdownOverlay" class="countdown-overlay">
+        <div class="countdown-players">
+            <div class="countdown-player">
+                <div class="countdown-player-name" id="countdownPlayer1">玩家1</div>
+                <div class="countdown-player-char" id="countdownChar1">角色</div>
+            </div>
+            <div class="countdown-player">
+                <div class="countdown-player-name" id="countdownPlayer2">玩家2</div>
+                <div class="countdown-player-char" id="countdownChar2">角色</div>
+            </div>
+        </div>
+        <div class="countdown-number" id="countdownNumber">5</div>
+    </div>
+    
+    <div id="resultOverlay" class="result-overlay">
+        <div class="result-content" id="resultContent">
+            <h1 id="resultText">得胜</h1>
+            <button class="btn btn-primary" onclick="Game.backToRoom()">返回房间</button>
+        </div>
+    </div>
+    
+    <div id="skillModal" class="skill-modal">
+        <div class="skill-modal-content">
+            <h3 id="skillModalName">技能名</h3>
+            <p id="skillModalDesc">技能描述</p>
+            <div class="skill-modal-buttons">
+                <button class="btn btn-primary" id="useSkillBtn" onclick="Game.confirmUseSkill()">释放技能</button>
+                <button class="btn btn-secondary" onclick="Game.closeSkillModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/data/characters.js"></script>
+    <script src="/js/ui/UI.js"></script>
+    <script src="/js/game/Game.js"></script>
+</body>
+</html>
