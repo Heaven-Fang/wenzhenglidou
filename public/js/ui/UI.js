@@ -67,6 +67,72 @@ const UI = {
         });
     },
     
+    initEncyclopedia() {
+        const list = document.getElementById('encyclopediaCharacterList');
+        list.innerHTML = '';
+        
+        const characters = CharacterData.characters;
+        Object.values(characters).forEach(char => {
+            const div = document.createElement('div');
+            div.className = 'character-item';
+            div.onclick = () => this.showEncyclopediaCharacterDetail(char.id);
+            div.innerHTML = `
+                <div class="character-name">${char.name}</div>
+                <div class="character-title">——${char.title}</div>
+            `;
+            list.appendChild(div);
+        });
+    },
+    
+    showEncyclopediaCharacterDetail(charId) {
+        const char = CharacterData.getCharacterById(charId);
+        if (!char) return;
+        
+        const detail = document.getElementById('encyclopediaCharacterDetail');
+        detail.innerHTML = `
+            <div class="detail-section">
+                <h3>${char.name}——${char.title}</h3>
+                <p><strong>标签:</strong> ${char.tag}</p>
+                <p>${char.description}</p>
+            </div>
+            <div class="detail-section">
+                <h3>战斗属性</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">${char.maxHP}</div>
+                        <div class="stat-label">HP</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${char.atk}</div>
+                        <div class="stat-label">ATK</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${char.def}</div>
+                        <div class="stat-label">DEF</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${char.initSP}/${char.maxSP}</div>
+                        <div class="stat-label">SP</div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-section">
+                <h3>天赋: ${char.talent.name}</h3>
+                <p>${char.talent.description}</p>
+            </div>
+            <div class="detail-section">
+                <h3>技能</h3>
+                ${char.skills.map(skill => `
+                    <div class="skill-item">
+                        <span class="skill-name">【${skill.name}】</span>
+                        <span class="skill-cost">${skill.type === 'active' ? `SP: ${skill.spCost}` : '被动'}</span>
+                        <p>${skill.description}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+    
     showCharacterDetail(charId) {
         const char = CharacterData.getCharacterById(charId);
         if (!char) return;

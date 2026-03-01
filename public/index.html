@@ -17,6 +17,7 @@
             <div class="menu-buttons">
                 <button class="btn btn-primary" onclick="UI.showScreen('createRoomScreen')">创建房间</button>
                 <button class="btn btn-secondary" onclick="UI.showScreen('joinRoomScreen')">加入房间</button>
+                <button class="btn btn-secondary" onclick="Game.showEncyclopedia()">图鉴</button>
             </div>
         </div>
         
@@ -187,6 +188,23 @@
                     <div class="talent-panel" id="player2Talent"></div>
                     <div class="skills-panel" id="player2Skills"></div>
                 </div>
+            </div>
+        </div>
+        
+        <div id="encyclopediaScreen" class="screen select-screen">
+            <div class="select-header">
+                <h2>角色图鉴</h2>
+            </div>
+            
+            <div class="select-container">
+                <div class="character-list" id="encyclopediaCharacterList"></div>
+                <div class="character-detail" id="encyclopediaCharacterDetail">
+                    <p style="text-align: center; color: #888;">请选择一个角色查看详情</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-danger" onclick="UI.showScreen('startScreen')">返回</button>
             </div>
         </div>
     </div>

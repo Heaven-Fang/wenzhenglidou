@@ -293,6 +293,11 @@ const Game = {
         UI.hideResult();
         UI.showScreen('roomScreen');
         this.requestRoomInfo();
+    },
+    
+    showEncyclopedia() {
+        UI.showScreen('encyclopediaScreen');
+        UI.initEncyclopedia();
     }
 };
 
