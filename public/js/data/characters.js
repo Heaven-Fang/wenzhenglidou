@@ -82,7 +82,28 @@ const characters = {
             { id: 2, name: '厚积', type: 'active', timing: 'before', spCost: 1, description: '使本回合双方在本回合【前】技能释放步骤结束后跳过本回合的行动值比拼步骤，直接使对方成为进攻方，我方成为防守方。本回合我方受到的普通伤害-1。下一回合的行动值比拼步骤的我方的随机数取2次，取大的那一个作为本回合行动值比拼步骤中我方的随机数。本回合进行一技能判定时，行动判定点数的值改为本回合所取得两个随机数相加再加上我方当前的ATK。（若该技能在本回合释放后下回合禁用）' },
             { id: 3, name: '定命', type: 'active', timing: 'before', spCost: 7, description: '指定一名角色，立刻造成大量伤害：2+增伤+(自身SP上限-4)。增伤：角色通过自身技能或特殊道具获得的另一种数值，与普通伤害叠加，向对手造成更大打击。公式：最终伤害=普通伤害+增伤，增伤效果在闪避判定之前计算。' }
         ]
-    }
+    };
+    5: {
+    id: 5,
+    name: '铃仙',
+    title: '狂气之兔',
+    tag: '回复，打断',
+    description: '控制波长，中止对手使用技能',
+    maxHP: 7,
+    atk: 20,
+    def: 3,
+    maxSP: 6,
+    initSP: 1,
+    talent: {
+        name: '波长控制',
+        description: 'SP不自然回复，仅有铃仙命中对手时SP+1。相邻回合连续命中，SP额外+1。'
+    },
+    skills: [
+        { id: 1, name: '人里药郎', type: 'active', timing: 'before', spCost: 0, description: '降低SP获得HP。' },
+        { id: 2, name: '生神停止', type: 'active', timing: 'before', spCost: 1, description: '在对方使用瞬间技能后，自己可立刻取消对方技能。使用技能瞬间清空自身负面buff。（整局游戏仅可触发2次）' },
+        { id: 3, name: '真实之月', type: 'active', timing: 'before', spCost: 2, description: '消耗自身HP，对对方造成大量真实伤害。' }
+    ]
+};
 };
 
 function getCharacterById(id) {
@@ -91,7 +112,7 @@ function getCharacterById(id) {
 
 function getAllCharacters() {
     return Object.values(characters);
-}
+};
 
 window.CharacterData = {
     characters,
